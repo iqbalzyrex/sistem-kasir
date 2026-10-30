@@ -69,3 +69,9 @@ nav.bottom{display:none}
 
 .head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}.head h2{margin:0}
 .hrg{color:var(--rd);font-variant-numeric:tabular-nums;white-space:nowrap}
+
+.c{text-align:center}
+.voice .micwrap{display:flex;flex-direction:column;align-items:center;gap:10px;padding:18px 0 8px}
+.mic{width:110px;height:110px;border-radius:50%;display:grid;place-items:center;padding:0;background:var(--bl);box-shadow:0 0 0 6px #0a3d9122}
+.mic.on{background:var(--rd);animation:pulse 1.2s infinite}
+@keyframes pulse{0%{box-shadow:0 0 0 0 #e3001b66}100%{box-shadow:0 0 0 26px #e3001b00}}

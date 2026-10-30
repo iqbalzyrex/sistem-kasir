@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { useTable } from './useTable'
+import VoiceSearch from './VoiceSearch'
 
 const rp = n => 'Rp ' + Number(n || 0).toLocaleString('id-ID')
 const tgl = t => new Date(t).toLocaleString('id-ID', { dateStyle: 'short', timeStyle: 'short' })
@@ -359,6 +360,7 @@ function Nota({ nota, setNota }) {
 }
 
 const ICON = {
+  suara: <><rect x="9" y="3" width="6" height="12" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3M8 21h8" /></>,
   daftar: <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />,
   kasir: <><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 7H6" /></>,
   produk: <path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8" />,
@@ -368,12 +370,12 @@ const ICON = {
 const Ico = ({ k }) => <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICON[k]}</svg>
 
 export default function App() {
-  const [tab, setTab] = useState('daftar')
+  const [tab, setTab] = useState('suara')
   const [produk, setProduk, produkLoaded] = useTable('produk')
   const [trx, setTrx] = useTable('trx')
   const [nota, setNota] = useTable('nota')
   const [newCode, setNewCode] = useState('')
-  const tabs = [['daftar', 'Daftar'], ['kasir', 'Kasir'], ['produk', 'Kelola'], ['riwayat', 'Riwayat'], ['nota', 'Nota utang']]
+  const tabs = [['suara', 'Suara'], ['daftar', 'Daftar'], ['kasir', 'Kasir'], ['produk', 'Kelola'], ['riwayat', 'Riwayat'], ['nota', 'Nota utang']]
   const nav = cls => (
     <nav className={cls}>
       {tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Ico k={k} />{l}</button>)}
@@ -383,6 +385,7 @@ export default function App() {
     <>
       <header><h1>KASIR</h1>{nav('top')}</header>
       <main>
+        {tab === 'suara' && <VoiceSearch produk={produk} loaded={produkLoaded} onKelola={() => setTab('produk')} />}
         {tab === 'daftar' && <Daftar produk={produk} loaded={produkLoaded} onKelola={() => setTab('produk')} />}
         {tab === 'kasir' && <Kasir produk={produk} nota={nota} setNota={setNota} addTrx={t => setTrx(a => [t, ...a])} onUnknown={c => { setNewCode(c); setTab('produk') }} />}
         {tab === 'produk' && <Produk produk={produk} setProduk={setProduk} initCode={newCode} clearCode={() => setNewCode('')} />}
