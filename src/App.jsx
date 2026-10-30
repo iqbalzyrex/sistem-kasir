@@ -376,14 +376,35 @@ export default function App() {
   const [nota, setNota] = useTable('nota')
   const [newCode, setNewCode] = useState('')
   const tabs = [['suara', 'Suara'], ['daftar', 'Daftar'], ['kasir', 'Kasir'], ['produk', 'Kelola'], ['riwayat', 'Riwayat'], ['nota', 'Nota utang']]
-  const nav = cls => (
-    <nav className={cls}>
-      {tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Ico k={k} />{l}</button>)}
-    </nav>
+  const [open, setOpen] = useState(false)
+  useEffect(() => {
+    const k = e => e.key === 'Escape' && setOpen(false)
+    addEventListener('keydown', k)
+    return () => removeEventListener('keydown', k)
+  }, [])
+  const menu = (
+    <>
+      <div className={'fab-back' + (open ? ' on' : '')} onClick={() => setOpen(false)} />
+      <div className={'fab-wrap' + (open ? ' open' : '')}>
+        {tabs.map(([k, l], i) => {
+          const a = (165 - (150 / (tabs.length - 1)) * i) * Math.PI / 180
+          return (
+            <button key={k} className={'fi' + (tab === k ? ' on' : '')} aria-label={l} tabIndex={open ? 0 : -1}
+              style={{ '--x': Math.round(130 * Math.cos(a)) + 'px', '--y': Math.round(-130 * Math.sin(a)) + 'px', '--d': i * 35 + 'ms' }}
+              onClick={() => { setTab(k); setOpen(false) }}>
+              <span className="ic"><Ico k={k} /></span><em>{l}</em>
+            </button>
+          )
+        })}
+        <button className="fab" aria-label="Menu" aria-expanded={open} onClick={() => setOpen(o => !o)}>
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#fff" strokeWidth="2.4" strokeLinecap="round"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+      </div>
+    </>
   )
   return (
     <>
-      <header><h1>KASIR</h1>{nav('top')}</header>
+      <header><h1>KASIR</h1></header>
       <main>
         {tab === 'suara' && <VoiceSearch produk={produk} loaded={produkLoaded} onKelola={() => setTab('produk')} />}
         {tab === 'daftar' && <Daftar produk={produk} loaded={produkLoaded} onKelola={() => setTab('produk')} />}
@@ -392,7 +413,7 @@ export default function App() {
         {tab === 'riwayat' && <Riwayat trx={trx} setTrx={setTrx} />}
         {tab === 'nota' && <Nota nota={nota} setNota={setNota} />}
       </main>
-      {nav('bottom')}
+      {menu}
     </>
   )
 }
