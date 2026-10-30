@@ -145,7 +145,7 @@ function Kasir({ produk, nota, setNota, addTrx, onUnknown }) {
               <b>{p.nama}</b><span>{rp(p.harga)}</span>
             </button>
           ))}
-          {produk.length === 0 && <p className="muted">Belum ada produk. Tambahkan di tab Produk.</p>}
+          {produk.length === 0 && <p className="muted">Belum ada produk. Tambahkan di tab Kelola.</p>}
         </div>
       </section>
       <aside className="panel">
@@ -189,6 +189,34 @@ function Kasir({ produk, nota, setNota, addTrx, onUnknown }) {
   )
 }
 
+function Daftar({ produk, loaded, onKelola }) {
+  const [q, setQ] = useState('')
+  const kw = q.trim().toLowerCase()
+  const hasil = produk
+    .filter(p => !kw || (p.nama || '').toLowerCase().includes(kw) || (p.barcode || '').includes(kw))
+    .sort((a, b) => (a.nama || '').localeCompare(b.nama || '', 'id'))
+  return (
+    <div className="panel wide">
+      <div className="head">
+        <h2>Daftar produk</h2>
+        <button onClick={onKelola}>+ Tambah produk</button>
+      </div>
+      <input className="full" placeholder="Cari nama atau barcode..." value={q} onChange={e => setQ(e.target.value)} />
+      <p className="muted">
+        {!loaded ? 'Memuat produk...' : kw ? `${hasil.length} dari ${produk.length} produk` : `${produk.length} produk`}
+      </p>
+      {loaded && produk.length === 0 && <p className="muted">Belum ada produk. Tambahkan produk pertama lewat tombol di atas.</p>}
+      {loaded && produk.length > 0 && hasil.length === 0 && <p className="muted">Tidak ada produk yang cocok dengan pencarian.</p>}
+      {hasil.map(p => (
+        <div className="line" key={p.id}>
+          <div><b>{p.nama}</b><small>{p.barcode ? 'Barcode ' + p.barcode : 'Tanpa barcode'}</small></div>
+          <b className="hrg">{rp(p.harga)}</b>
+        </div>
+      ))}
+    </div>
+  )
+}
+
 function Produk({ produk, setProduk, initCode, clearCode }) {
   const [nama, setNama] = useState('')
   const [harga, setHarga] = useState('')
@@ -215,7 +243,7 @@ function Produk({ produk, setProduk, initCode, clearCode }) {
   const upd = (id, k, v) => setProduk(p => p.map(x => x.id === id ? { ...x, [k]: v } : x))
   return (
     <div className="panel wide">
-      <h2>Produk</h2>
+      <h2>Kelola produk</h2>
       <form className="add wrap" onSubmit={tambah}>
         <input placeholder="Barcode (scan / ketik, Enter)" value={barcode} onChange={e => setBarcode(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); if (barcode.trim()) isi(barcode.trim()) } }} />
@@ -331,6 +359,7 @@ function Nota({ nota, setNota }) {
 }
 
 const ICON = {
+  daftar: <path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01" />,
   kasir: <><circle cx="9" cy="20" r="1.5" /><circle cx="18" cy="20" r="1.5" /><path d="M2 3h3l2.7 12.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.5L21 7H6" /></>,
   produk: <path d="M21 8l-9-5-9 5v8l9 5 9-5zM3 8l9 5 9-5M12 13v8" />,
   riwayat: <><circle cx="12" cy="12" r="9" /><path d="M12 7v5l3 2" /></>,
@@ -339,12 +368,12 @@ const ICON = {
 const Ico = ({ k }) => <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">{ICON[k]}</svg>
 
 export default function App() {
-  const [tab, setTab] = useState('kasir')
-  const [produk, setProduk] = useTable('produk')
+  const [tab, setTab] = useState('daftar')
+  const [produk, setProduk, produkLoaded] = useTable('produk')
   const [trx, setTrx] = useTable('trx')
   const [nota, setNota] = useTable('nota')
   const [newCode, setNewCode] = useState('')
-  const tabs = [['kasir', 'Kasir'], ['produk', 'Produk'], ['riwayat', 'Riwayat'], ['nota', 'Nota utang']]
+  const tabs = [['daftar', 'Daftar'], ['kasir', 'Kasir'], ['produk', 'Kelola'], ['riwayat', 'Riwayat'], ['nota', 'Nota utang']]
   const nav = cls => (
     <nav className={cls}>
       {tabs.map(([k, l]) => <button key={k} className={tab === k ? 'on' : ''} onClick={() => setTab(k)}><Ico k={k} />{l}</button>)}
@@ -354,6 +383,7 @@ export default function App() {
     <>
       <header><h1>KASIR</h1>{nav('top')}</header>
       <main>
+        {tab === 'daftar' && <Daftar produk={produk} loaded={produkLoaded} onKelola={() => setTab('produk')} />}
         {tab === 'kasir' && <Kasir produk={produk} nota={nota} setNota={setNota} addTrx={t => setTrx(a => [t, ...a])} onUnknown={c => { setNewCode(c); setTab('produk') }} />}
         {tab === 'produk' && <Produk produk={produk} setProduk={setProduk} initCode={newCode} clearCode={() => setNewCode('')} />}
         {tab === 'riwayat' && <Riwayat trx={trx} setTrx={setTrx} />}

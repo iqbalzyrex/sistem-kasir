@@ -5,10 +5,12 @@ import { supabase } from './supabase'
 // perubahan dari perangkat lain masuk otomatis lewat realtime.
 export function useTable(table) {
   const [rows, setRows] = useState([])
+  const [loaded, setLoaded] = useState(false)
   const ref = useRef([])
 
   const load = useCallback(async () => {
     const { data, error } = await supabase.from(table).select('id,data').order('created_at')
+    setLoaded(true)
     if (error) return console.error(table, error.message)
     const r = data.map(x => ({ ...x.data, id: x.id }))
     ref.current = r
@@ -36,5 +38,5 @@ export function useTable(table) {
     if (del.length) supabase.from(table).delete().in('id', del).then(log)
   }, [table])
 
-  return [rows, set]
+  return [rows, set, loaded]
 }
